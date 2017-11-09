@@ -30,16 +30,23 @@ foreach ($events as $event) {
       }
 
       $dbh = dbConnection::getConnection();
+      /*
       $sql = 'select * from ' . TABLE_NAME_USERS . ' where ? = userid';
       $sth = $dbh->prepare($sql);
       $sth->execute(array($event->getUserId()));
       if($row = $sth->fetch()) {
         //$sqlAdd = 'insert into '. TABLE_NAME_USERS .' (session_id, access_token, refresh_token, expires_in) values (?, ?, ?, ?) returning *';
       } else {
-        $sqlAdd = 'insert into '. TABLE_NAME_USERS .' (userid, lastmessage, allmessages) values (?, ?, ?)';
+        //$sqlAdd = 'insert into '. TABLE_NAME_USERS .' (userid, lastmessage, allmessages) values (?, ?, ?)';
+        // insert into users (userid, lastmessage, allmessages) values('U5e8f9121ac6c4dde98356f48acba2642', 'aaaaa', 'bbbbb');
+        // insert into users (userid, lastmessage, allmessages) values('U5e8f9121ac6c4dde98356f48acba2642', 'aaaaa', 'bbbbb') on conflict on constraint users_pkey do update set lastmessage = 'ccccc', allmessages = 'ddddd';
       }
       $sthAdd = $dbh->prepare($sqlAdd);
       $sthAdd->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
+      */
+      $sql = 'insert into users (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
+      $sth = $dbh->prepare($sql);
+      $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
     }
     continue;
   }
