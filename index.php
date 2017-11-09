@@ -15,20 +15,6 @@ foreach ($events as $event) {
 
   if ($event instanceof \LINE\LINEBot\Event\MessageEvent) {
     if ($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage) {
-      /*
-      if($event->getText() === 'こんにちは') {
-        $bot->replyMessage($event->getReplyToken(),
-          (new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder())
-            ->add(new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(1, 17))
-            ->add(new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('こんにちは！' . $displayName . 'さん'))
-        );
-      } else {
-        $bot->replyMessage($event->getReplyToken(),
-          (new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder())
-            ->add(new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('「こんにちは」と呼びかけて下さいね！'))
-            ->add(new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(1, 4))
-        );
-      } */
       $dbh = dbConnection::getConnection();
       if($event->getText() === 'last') {
         $sql = 'select lastmessage from ' . TABLE_NAME_USERS . ' where ? = userid';
@@ -40,41 +26,13 @@ foreach ($events as $event) {
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
         }
       }
-      else if($event->getText() === 'all') {
-        $sql = 'select allmessages from ' . TABLE_NAME_USERS . ' where ? = userid';
-        $sth = $dbh->prepare($sql);
-        $sth->execute(array($event->getUserId()));
-        if($row = $sth->fetch()) {
-          error_log($row['allmessages']);
-          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row['allmessages']));
-        } else {
-          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
-        }
-      }
       else {
-        $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
+        $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage) values(?, ?) on conflict on constraint users_pkey do update set lastmessage = ?';
         $sth = $dbh->prepare($sql);
-        $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()), JSON_UNESCAPED_UNICODE), $event->getText(), json_encode(array($event->getText()), JSON_UNESCAPED_UNICODE)));
+        $sth->execute(array($event->getUserId(), $event->getText(), $event->getText()));
 
         $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('saved'));
       }
-
-
-      /*
-      $sql = 'select * from ' . TABLE_NAME_USERS . ' where ? = userid';
-      $sth = $dbh->prepare($sql);
-      $sth->execute(array($event->getUserId()));
-      if($row = $sth->fetch()) {
-        //$sqlAdd = 'insert into '. TABLE_NAME_USERS .' (session_id, access_token, refresh_token, expires_in) values (?, ?, ?, ?) returning *';
-      } else {
-        //$sqlAdd = 'insert into '. TABLE_NAME_USERS .' (userid, lastmessage, allmessages) values (?, ?, ?)';
-        // insert into users (userid, lastmessage, allmessages) values('U5e8f9121ac6c4dde98356f48acba2642', 'aaaaa', 'bbbbb');
-        // insert into users (userid, lastmessage, allmessages) values('U5e8f9121ac6c4dde98356f48acba2642', 'aaaaa', 'bbbbb') on conflict on constraint users_pkey do update set lastmessage = 'ccccc', allmessages = 'ddddd';
-      }
-      $sthAdd = $dbh->prepare($sqlAdd);
-      $sthAdd->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
-      */
-
     }
     continue;
   }

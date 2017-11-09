@@ -13,5 +13,5 @@ $ heroku psql -a YOUR_HEROKU_APP_NAME
 ```
 Once connected, create table with following command.
 ```
-$ create table users(userid text primary key, lastmessage text, allmessages text);
+$ create table users(userid text primary key, lastmessage text);
 ```
