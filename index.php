@@ -35,8 +35,10 @@ foreach ($events as $event) {
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
         if($row = $sth->fetch()) {
-          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row->lastmessage));
+          error_log('exists');
+          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row['lastmessage']));
         } else {
+          error_log('not exists');
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
         }
       }
