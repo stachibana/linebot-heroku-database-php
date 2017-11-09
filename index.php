@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
+define('TABLE_NAME_USERS', 'users');
 
 $httpClient = new \LINE\LINEBot\HTTPClient\CurlHTTPClient(getenv('CHANNEL_ACCESS_TOKEN'));
 $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('CHANNEL_SECRET')]);
@@ -27,11 +28,44 @@ foreach ($events as $event) {
             ->add(new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(1, 4))
         );
       }
+
+      $dbh = dbConnection::getConnection();
+      $sql = 'select * from ' . TABLE_NAME_USERS . ' where ? = userid';
+      $sth = $dbh->prepare($sql);
+      $sth->execute(array($event->getUserId()));
+      if($row = $sth->fetch()) {
+        //$sqlAdd = 'insert into '. TABLE_NAME_USERS .' (session_id, access_token, refresh_token, expires_in) values (?, ?, ?, ?) returning *';
+      } else {
+        $sqlAdd = 'insert into '. TABLE_NAME_USERS .' (userid, lastmessage, allmessages) values (?, ?, ?)';
+      }
+      $sthAdd = $dbh->prepare($sqlAdd);
+      $sthAdd->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
     }
     continue;
   }
 }
 
+class dbConnection {
+  protected static $db;
+  private function __construct() {
 
+    try {
+      $url = parse_url(getenv('DATABASE_URL'));
+      $dsn = sprintf('pgsql:host=%s;dbname=%s', $url['host'], substr($url['path'], 1));
+      self::$db = new PDO($dsn, $url['user'], $url['pass']);
+      self::$db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+    }
+    catch (PDOException $e) {
+      echo "Connection Error: " . $e->getMessage();
+    }
+  }
+
+  public static function getConnection() {
+    if (!self::$db) {
+      new dbConnection();
+    }
+    return self::$db;
+  }
+}
 
 ?>
