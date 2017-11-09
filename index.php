@@ -15,6 +15,7 @@ foreach ($events as $event) {
 
   if ($event instanceof \LINE\LINEBot\Event\MessageEvent) {
     if ($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage) {
+      /*
       if($event->getText() === 'こんにちは') {
         $bot->replyMessage($event->getReplyToken(),
           (new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder())
@@ -27,9 +28,20 @@ foreach ($events as $event) {
             ->add(new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('「こんにちは」と呼びかけて下さいね！'))
             ->add(new \LINE\LINEBot\MessageBuilder\StickerMessageBuilder(1, 4))
         );
+      } */
+      $dbh = dbConnection::getConnection();
+      if($event->getText() === '最後') {
+        $sql = 'select lastmessage from ' . TABLE_NAME_USERS . ' where ? = userid';
+        $sth = $dbh->prepare($sql);
+        $sth->execute(array($event->getUserId()));
+        if($row = $sth->fetch()) {
+          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row->lastmessage));
+        } else {
+          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
+        }
       }
 
-      $dbh = dbConnection::getConnection();
+
       /*
       $sql = 'select * from ' . TABLE_NAME_USERS . ' where ? = userid';
       $sth = $dbh->prepare($sql);
