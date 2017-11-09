@@ -30,7 +30,7 @@ foreach ($events as $event) {
         );
       } */
       $dbh = dbConnection::getConnection();
-      if($event->getText() === '最後') {
+      if($event->getText() === 'last') {
         $sql = 'select lastmessage from ' . TABLE_NAME_USERS . ' where ? = userid';
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
@@ -40,7 +40,7 @@ foreach ($events as $event) {
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
         }
       }
-      else if($event->getText() === '全部') {
+      else if($event->getText() === 'all') {
         $sql = 'select allmessages from ' . TABLE_NAME_USERS . ' where ? = userid';
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
@@ -53,7 +53,9 @@ foreach ($events as $event) {
       else {
         $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
         $sth = $dbh->prepare($sql);
-        $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText())), $event->getText(), json_encode(array($event->getText()))));
+        $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText())), $event->getText(), json_encode(array($event->getText()), JSON_UNESCAPED_UNICODE)));
+
+        $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('saved'));
       }
 
 
