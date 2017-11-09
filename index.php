@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
-define('TABLE_NAME_USERS', 'users');
 
 $httpClient = new \LINE\LINEBot\HTTPClient\CurlHTTPClient(getenv('CHANNEL_ACCESS_TOKEN'));
 $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => getenv('CHANNEL_SECRET')]);
@@ -9,15 +8,11 @@ $signature = $_SERVER["HTTP_" . \LINE\LINEBot\Constant\HTTPHeader::LINE_SIGNATUR
 
 $events = $bot->parseEventRequest(file_get_contents('php://input'), $signature);
 foreach ($events as $event) {
-
-  $profile = $bot->getProfile($event->getUserId())->getJSONDecodedBody();
-  $displayName = $profile['displayName'];
-
   if ($event instanceof \LINE\LINEBot\Event\MessageEvent) {
     if ($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage) {
       $dbh = dbConnection::getConnection();
       if($event->getText() === 'last') {
-        $sql = 'select lastmessage from ' . TABLE_NAME_USERS . ' where ? = userid';
+        $sql = 'select lastmessage from users where ? = userid';
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
         if($row = $sth->fetch()) {
@@ -27,11 +22,10 @@ foreach ($events as $event) {
         }
       }
       else {
-        $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage) values(?, ?) on conflict on constraint users_pkey do update set lastmessage = ?';
+        $sql = 'insert into users (userid, lastmessage) values(?, ?) on conflict on constraint users_pkey do update set lastmessage = ?';
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId(), $event->getText(), $event->getText()));
-
-        $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('saved'));
+        $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('Message saved. Send \'last\' to show.'));
       }
     }
     continue;
