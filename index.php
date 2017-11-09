@@ -45,7 +45,7 @@ foreach ($events as $event) {
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
         if($row = $sth->fetch()) {
-          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row['allmessages']));
+          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(var_export(json_decode($row['allmessages'], true))));
         } else {
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
         }
