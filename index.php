@@ -45,6 +45,7 @@ foreach ($events as $event) {
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
         if($row = $sth->fetch()) {
+          error_log($row['allmessages']);
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(json_decode($row['allmessages'])));
         } else {
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
@@ -53,7 +54,7 @@ foreach ($events as $event) {
       else {
         $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
         $sth = $dbh->prepare($sql);
-        $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText())), $event->getText(), json_encode(array($event->getText()), JSON_UNESCAPED_UNICODE)));
+        $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()), JSON_UNESCAPED_UNICODE), $event->getText(), json_encode(array($event->getText()), JSON_UNESCAPED_UNICODE)));
 
         $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('saved'));
       }
