@@ -35,12 +35,25 @@ foreach ($events as $event) {
         $sth = $dbh->prepare($sql);
         $sth->execute(array($event->getUserId()));
         if($row = $sth->fetch()) {
-          error_log('exists');
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row['lastmessage']));
         } else {
-          error_log('not exists');
           $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
         }
+      }
+      else if($event->getText() === '全部') {
+        $sql = 'select allmessages from ' . TABLE_NAME_USERS . ' where ? = userid';
+        $sth = $dbh->prepare($sql);
+        $sth->execute(array($event->getUserId()));
+        if($row = $sth->fetch()) {
+          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder($row['allmessages']));
+        } else {
+          $bot->replyMessage($event->getReplyToken(), new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('no history.'));
+        }
+      }
+      else {
+        $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
+        $sth = $dbh->prepare($sql);
+        $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText())), $event->getText(), json_encode(array($event->getText()))));
       }
 
 
@@ -58,9 +71,7 @@ foreach ($events as $event) {
       $sthAdd = $dbh->prepare($sqlAdd);
       $sthAdd->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
       */
-      $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
-      $sth = $dbh->prepare($sql);
-      $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText())), $event->getText(), json_encode(array($event->getText()))));
+
     }
     continue;
   }
