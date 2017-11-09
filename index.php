@@ -44,9 +44,9 @@ foreach ($events as $event) {
       $sthAdd = $dbh->prepare($sqlAdd);
       $sthAdd->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
       */
-      $sql = 'insert into users (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
+      $sql = 'insert into ' . TABLE_NAME_USERS . ' (userid, lastmessage, allmessages) values(?, ?, ?) on conflict on constraint users_pkey do update set lastmessage = ?, allmessages = ?';
       $sth = $dbh->prepare($sql);
-      $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText()))));
+      $sth->execute(array($event->getUserId(), $event->getText(), json_encode(array($event->getText())), $event->getText(), json_encode(array($event->getText()))));
     }
     continue;
   }
